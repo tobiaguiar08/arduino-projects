@@ -14,10 +14,18 @@ void uart_init() {
   UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 }
 
+void uart_putchar(char c) {
+  while (!(UCSR0A & (1 << UDRE0)));
+  UDR0 = c;
+}
+
 int main ()
 {
   /*Init*/
   uart_init();
-  while (1);
+  while (1) {
+    uart_putchar('B');
+    _delay_ms(1000);
+  }
   return 0;
 }

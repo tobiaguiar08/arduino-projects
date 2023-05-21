@@ -1,28 +1,33 @@
-CC = avr-gcc
-CFLAGS = -mmcu=atmega328p -DF_CPU=16000000UL -Wall -Os
+# Makefile for compiling and flashing C code on Arduino Uno
+
+# Compiler and Flags
+CC      = avr-gcc
 OBJCOPY = avr-objcopy
-SRC_DIR = src
-OBJ_DIR = obj
-BIN_DIR = bin
-TARGET = main
+AVRDUDE = avrdude
 
-$(shell mkdir -p $(OBJ_DIR) $(BIN_DIR))
+# Source File
+SRC = main.c
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Output File
+HEX = program.hex
 
-$(OBJ_DIR)/main.o: main.c
-	$(CC) $(CFLAGS) -c $< -o $@
+# Compile C code and generate ELF and Intel Hex files
+all: $(HEX)
 
-$(BIN_DIR)/$(TARGET).elf: $(OBJ_DIR)/main.o
-	$(CC) $(CFLAGS) $^ -o $@
-	$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom $(BIN_DIR)/$(TARGET).o $(BIN_DIR)/$(TARGET).hex
+$(HEX): $(SRC:.c=.elf)
+	$(OBJCOPY) -O ihex -R .eeprom $< $@
 
-flash:
-	avrdude -c arduino -p m328p -P /dev/ttyACM0 -U flash:w:$(BIN_DIR)/$(TARGET).hex
+$(SRC:.c=.elf): $(SRC)
+	$(CC) -mmcu=atmega328p -Os -o $@ $<
 
+# Flash the Arduino board
+flash: $(HEX)
+	$(AVRDUDE) -c arduino -p m328p -P /dev/ttyACM0 -U flash:w:$(HEX)
+
+# Clean the project
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -f *.elf *.hex
 
-.PHONY: flash clean
+.PHONY: all flash clean
+
 
