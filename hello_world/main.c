@@ -19,12 +19,19 @@ void uart_putchar(char c) {
   UDR0 = c;
 }
 
+void uart_putstr(char *s) {
+  while (*s) {
+    uart_putchar(*s++);
+  }
+}
+
 int main ()
 {
   /*Init*/
   uart_init();
   while (1) {
-    uart_putchar('B');
+    //uart_putchar('B');
+    uart_putstr("Hello, world!\r\n");
     _delay_ms(1000);
   }
   return 0;
